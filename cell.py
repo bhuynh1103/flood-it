@@ -28,20 +28,9 @@ class Cell:
             for j in range(-1, 2):
                 a = self.i + i
                 b = self.j + j
-                if abs(a) + abs(b) == 1:
-                    if (a >= 0 or a < boardSize or b >= 0 or b < boardSize):
-                        if grid[a][b].color == colorpicked:
-                            grid[a][b].flooded = True
-                            if not grid[a][b].flooded:
-                                grid[a][b].flood(colorpicked, grid)
-
-        # for i in range(-1, 2):
-        #     for j in range(-1, 2):
-        #         a = self.i + i
-        #         b = self.j + j
-        #         if abs(a) + abs(b) == 1 and a >= 0 and a < boardSize and b >= 0 and b < boardSize:
-        #             cell = grid[a][b]
-        #             if cell.color == colorpicked:
-        #                 cell.flooded = True
-        #                 cell.color = colorpicked
-        #                 cell.flood(colorpicked, grid)
+                if abs(i) + abs(j) == 1 and (a >= 0 and a < boardSize and b >= 0 and b < boardSize):
+                    cell = grid[a][b]
+                    if cell.color == colorpicked and not cell.flooded:
+                        cell.flooded = True
+                        cell.flood(colorpicked, grid)
+                        # print("flood")

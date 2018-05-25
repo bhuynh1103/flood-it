@@ -27,10 +27,10 @@ white = gray(255)
 
 # Constants
 screenSize = 800
-boardSize = 20
-numberOfColors = 6
+boardSize = 10
+numberOfColors = 4
 HUDsize = 100
 
 
 # Color array
-color = [red, yellow, blue, green, pink, purple]
+color = [red, yellow, green, blue, purple, pink, orange]

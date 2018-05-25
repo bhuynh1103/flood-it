@@ -40,6 +40,7 @@ while True:
             #     print(cell.i, cell.j, "clicked")
 
             if cell.flooded and colorpicked != None:
+                # print(cell.i, cell.j)
                 cell.flood(colorpicked, grid)
 
             if cell.has(mousePos) and leftClicked:
