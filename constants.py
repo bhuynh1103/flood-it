@@ -26,9 +26,9 @@ black = gray(0)
 white = gray(255)
 
 # Constants
-screenSize = 800
-boardSize = 10
-numberOfColors = 4
+screenSize = 900
+boardSize = 15
+numberOfColors = 5
 HUDsize = 100
 
 

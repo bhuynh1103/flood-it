@@ -8,71 +8,136 @@ from random import randint
 pygame.init()
 screen = pygame.display.set_mode((screenSize, screenSize + HUDsize))
 
-grid = []
-for i in range(boardSize):
-    grid.append([])
-    for j in range(boardSize):
-        clr = color[randint(0, numberOfColors - 1)]
-        grid[i].append(Cell(i, j, clr))
-
-
-PickColorButtons = []
-for x in range(numberOfColors):
-    buttonWidth = 50
-    PickColorButtons.append(PickColor((x * buttonWidth) + (buttonWidth // 2) + (x * 10), HUDsize // 2 - buttonWidth // 2, buttonWidth, color[x]))
-
-grid[0][0].flooded = True
-
-leftClicked = False
-colorpicked = None
-
-while True:
-    screen.fill(gray(200))
-
-    mousePos = pygame.mouse.get_pos()
-
+def winCondition(grid):
     for i in range(boardSize):
         for j in range(boardSize):
             cell = grid[i][j]
+            if cell.color != colorpicked:
+                return False
+    return True
 
-            # if cell.has(mousePos) and leftClicked:
-            #     cell.flood()
-            #     print(cell.i, cell.j, "clicked")
+while True:
+    # Generates all squares with a random color each
+    grid = []
+    for i in range(boardSize):
+        grid.append([])
+        for j in range(boardSize):
+            clr = color[randint(0, numberOfColors - 1)]
+            grid[i].append(Cell(i, j, clr))
 
-            if cell.flooded and colorpicked != None:
-                # print(cell.i, cell.j)
-                cell.flood(colorpicked, grid)
+    # Creates the pick color buttons
+    PickColorButtons = []
+    for x in range(numberOfColors):
+        buttonWidth = HUDsize * .66
+        PickColorButtons.append(PickColor((x * buttonWidth) + (buttonWidth // 2) +
+                (x * 10), HUDsize // 2 - buttonWidth // 2, buttonWidth, color[x]))
 
-            if cell.has(mousePos) and leftClicked:
-                print(cell.flooded)
+    # Starts the game off in the top left corner
+    topleft = grid[0][0]
+    topleft.flooded = True
+    topleft.flood(topleft.color, grid)
 
-            cell.draw(screen)
+    # Game control variables
+    moves = 0
+    leftClicked = False
+    colorpicked = None
 
-            # if cell.has(mousePos) and leftClicked:
-            #     print(cell.flooded)
+    Gameover = False
+    setup = False
 
+    while not setup:
+        # Game loop
+        while not Gameover:
+            screen.fill(gray(200))
+            mousePos = pygame.mouse.get_pos()
 
-    for button in PickColorButtons:
-        button.draw(screen)
+            # Draws board
+            for i in range(boardSize):
+                for j in range(boardSize):
+                    cell = grid[i][j]
 
-        if button.has(mousePos) and leftClicked:
-            colorpicked = button.color
-        elif not leftClicked:
-            colorpicked = None
+                    # cell.setEdges(grid)
 
-        # print(colorpicked)
+                    # Updates resepective squares whenever a color is picked
+                    if cell.flooded and colorpicked != None:
+                        cell.flood(colorpicked, grid)
 
-    pygame.display.update()
+                    # Debug tool
+                    if cell.has(mousePos) and leftClicked:
+                        print(cell.edges)
 
-    for event in pygame.event.get():
-        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-            pygame.quit()
-            sys.exit()
+                    cell.draw(screen, grid)
 
-        mouseStates = pygame.mouse.get_pressed()
+            # HUD
 
-        # Left-clicked
-        if event.type == MOUSEBUTTONDOWN and mouseStates[0] == 1:
-            leftClicked = True
-        else:
-            leftClicked = False
+            # A good part of the way though writing the game I realized the
+            # "HUD" wasn't really a HUD it's really like a GUI but I'm too lazy
+            # to refactor everything from HUD to GUI
+
+            for button in PickColorButtons:
+                button.draw(screen)
+
+                # Sets 'colorpicked' to the color of the button clicked, sets to None if no button is clicked
+                if button.has(mousePos) and leftClicked and colorpicked != button.color:
+                    colorpicked = button.color
+                    moves += 1
+                elif not leftClicked:
+                    colorpicked = None
+
+            # Writes number of moves, auto formats (that's why this is really long)
+            writeText(screen, "Moves: " + str(moves), black, PickColorButtons[numberOfColors - 1].x +
+            PickColorButtons[numberOfColors - 1].w + ((screenSize - (PickColorButtons[numberOfColors - 1].x +
+            PickColorButtons[numberOfColors - 1].w)) // 2), HUDsize // 2, HUDsize * .66)
+
+            if winCondition(grid):
+                Gameover = True
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+                    sys.exit()
+
+                mouseStates = pygame.mouse.get_pressed()
+
+                # Left-clicked
+                if event.type == MOUSEBUTTONDOWN and mouseStates[0] == 1:
+                    leftClicked = True
+                else:
+                    leftClicked = False
+
+        # Gameover loop
+        screen.fill(gray(200))
+        for i in range(boardSize):
+            for j in range(boardSize):
+                grid[i][j].draw(screen, grid)
+
+        # Draws message banner
+        pygame.draw.rect(screen, white, (0, ((screenSize // 2) + HUDsize) - HUDsize * .5, screenSize, HUDsize))
+
+        writeText(screen, "You Won! Press 'ENTER' to play again", black,
+                screenSize // 2, screenSize // 2 + HUDsize, HUDsize * .5)
+
+        # Control of constants in game within HUD to be added
+
+        writeText(screen, "Moves: " + str(moves), black, PickColorButtons[numberOfColors - 1].x +
+        PickColorButtons[numberOfColors - 1].w + ((screenSize - (PickColorButtons[numberOfColors - 1].x +
+        PickColorButtons[numberOfColors - 1].w)) // 2), HUDsize // 2, HUDsize * .66)
+
+        pygame.display.update()
+
+        # Input loop
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                setup = True
+
+            # Left-clicked
+            if event.type == MOUSEBUTTONDOWN and mouseStates[0] == 1:
+                leftClicked = True
+            else:
+                leftClicked = False
